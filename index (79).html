@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Japa Log</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Japa Log">
+<meta name="theme-color" content="#24365E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Literata:opsz,wght@7..72,500;7..72,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --bg:#E9EEF2; --surface:#F7F9FB; --ink:#1B2740; --muted:#566277; --line:#C7D1DA;
+  --accent:#24365E; --accent-ink:#FFFFFF; --saffron:#D9791A;
+  --r0:#B4BDC7; --r1:#B85C55; --r2:#D98B3A; --r3:#E0C246; --r4:#74A870; --r5:#2E6B4E;
+  --t0:#1B2740; --t1:#FFFFFF; --t2:#1B2740; --t3:#1B2740; --t4:#10261A; --t5:#FFFFFF;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1828; --surface:#172338; --ink:#E8EDF4; --muted:#9AA7BB; --line:#2C3B54;
+    --accent:#F0B45A; --accent-ink:#1B1406; --saffron:#F0A03C;
+    --r0:#59667B; --r1:#D9776F; --r2:#E5A052; --r3:#E6CB5C; --r4:#88BC84; --r5:#4E9C76;
+    --t0:#E8EDF4; --t1:#1E0C0A; --t2:#1E1204; --t3:#1E1A04; --t4:#0D2014; --t5:#06160E;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1828; --surface:#172338; --ink:#E8EDF4; --muted:#9AA7BB; --line:#2C3B54;
+  --accent:#F0B45A; --accent-ink:#1B1406; --saffron:#F0A03C;
+  --r0:#59667B; --r1:#D9776F; --r2:#E5A052; --r3:#E6CB5C; --r4:#88BC84; --r5:#4E9C76;
+  --t0:#E8EDF4; --t1:#1E0C0A; --t2:#1E1204; --t3:#1E1A04; --t4:#0D2014; --t5:#06160E;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Figtree',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+.wrap{max-width:460px;margin:0 auto;padding:20px 18px 48px}
+h1,h2,.num{font-family:'Literata',Georgia,'Times New Roman',serif;font-weight:700;margin:0}
+h1{font-size:28px;letter-spacing:-.01em}
+h2{font-size:20px;margin-bottom:4px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.date{color:var(--muted);font-size:15px}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:3px solid var(--saffron);outline-offset:2px}
+
+/* rounds grid */
+.summary{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:26px}
+.summary .big{font-family:'Literata',Georgia,serif;font-weight:700;font-size:56px;line-height:1}
+.summary .of{color:var(--muted);font-size:16px}
+.summary .avg{margin-left:auto;color:var(--muted);font-size:15px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:14px}
+.tile{display:grid;place-items:center;aspect-ratio:1/1.1;border-radius:8px;border:2px solid var(--line);font-family:'Literata',Georgia,serif;font-weight:700;font-size:19px;padding:0;cursor:pointer}
+.tile.pend{background:var(--surface);color:var(--muted);cursor:default}
+.tile.next{border-color:var(--saffron);border-width:3px;color:var(--ink)}
+.tile.sel{outline:3px solid var(--ink);outline-offset:2px}
+.extra{text-align:left;color:var(--muted);font-size:14px;margin-top:8px}
+
+.warn{margin:14px 0 0;padding:10px 14px;border-left:4px solid var(--r1);background:var(--surface);border-radius:0 10px 10px 0;font-size:14.5px}
+.primary:disabled{opacity:.55;cursor:default}
+.backup{display:flex;gap:10px;margin-top:18px}
+.bmsg{margin:10px 0 0;font-size:14px}
+.purpose{margin:14px 0 0;padding:10px 14px;border-left:4px solid var(--saffron);background:var(--surface);border-radius:0 10px 10px 0;font-size:14.5px;color:var(--muted);line-height:1.5}
+.purpose span{display:block;margin-top:4px;font-size:13px;font-style:italic}
+/* rating */
+section{margin-top:32px}
+.sub{color:var(--muted);font-size:15px;margin:0 0 14px}
+.rate{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:18px 16px 16px;margin-top:22px}
+.checks{display:grid;gap:10px;margin:14px 0}
+.item{padding:12px;background:var(--bg);border:1.5px solid var(--line);border-radius:12px}
+.item b{display:block;font-weight:600;font-size:16px;line-height:1.3}
+.item small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.seg button{padding:11px 0;border-radius:9px;border:1.5px solid var(--line);background:var(--surface);font-weight:600;font-size:15px}
+.seg button[aria-pressed="true"][data-v="0"]{background:var(--r1);border-color:var(--r1);color:var(--t1)}
+.seg button[aria-pressed="true"][data-v="1"]{background:var(--r3);border-color:var(--r3);color:var(--t3)}
+.seg button[aria-pressed="true"][data-v="2"]{background:var(--r5);border-color:var(--r5);color:var(--t5)}
+.check{display:flex;gap:12px;align-items:flex-start;text-align:left;width:100%;padding:12px;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;transition:border-color .12s,background .12s}
+.check[aria-pressed="true"]{border-color:var(--r5);background:color-mix(in srgb,var(--r5) 12%,var(--surface))}
+.box{flex:none;width:26px;height:26px;border-radius:8px;border:2px solid var(--muted);display:grid;place-items:center;margin-top:1px}
+.check[aria-pressed="true"] .box{background:var(--r5);border-color:var(--r5);color:var(--t5)}
+.ctext b{display:block;font-weight:600;font-size:16px;line-height:1.3}
+.ctext small{display:block;color:var(--muted);font-size:13.5px;margin-top:2px}
+.live{display:flex;align-items:center;gap:10px;margin:2px 0 14px;font-weight:600}
+.swatch{width:14px;height:14px;border-radius:50%;flex:none}
+.live span.sc{margin-left:auto;font-family:'Literata',Georgia,serif;font-size:20px}
+.btns{display:flex;gap:10px;flex-wrap:wrap}
+.primary{flex:1 1 100%;background:var(--accent);color:var(--accent-ink);border:0;border-radius:12px;padding:15px;font-weight:700;font-size:17px}
+.ghost{flex:1;background:transparent;border:1.5px solid var(--line);border-radius:12px;padding:11px;font-weight:600}
+.ghost.danger{color:var(--r1);border-color:color-mix(in srgb,var(--r1) 50%,var(--line))}
+
+/* summary */
+.kv{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kv div{padding:12px 10px}
+.kv div:first-child{padding-left:0}
+.kv div+div{border-left:1px solid var(--line)}
+.kv small{display:block;color:var(--muted);font-size:13.5px}
+.kv b{font-family:'Literata',Georgia,serif;font-size:17px}
+
+/* list */
+.rows{display:grid;border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;text-align:left;background:none;border:0;border-bottom:1px solid var(--line);padding:12px 2px;width:100%}
+.row .rn{font-family:'Literata',Georgia,serif;font-weight:700;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px}
+.row .mid b{display:block;font-weight:600}
+.row .mid small{color:var(--muted);font-size:13.5px}
+.pips{display:flex;gap:4px}
+.pip{width:8px;height:8px;border-radius:50%;background:var(--line)}
+
+/* trend */
+.trend{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:150px}
+.tcol{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;gap:4px;font-size:12.5px;color:var(--muted)}
+.tcol .bar{width:100%;max-width:34px;border-radius:8px 8px 3px 3px;min-height:3px}
+.tcol .bar.none{background:none;border-bottom:2px dashed var(--line);border-radius:0}
+.tcol b{color:var(--ink);font-weight:600;font-size:13px}
+.hold{display:grid;gap:12px;margin-top:6px}
+.hold .h{display:grid;gap:5px}
+.hold .top{display:flex;justify-content:space-between;gap:12px;font-size:15px}
+.hold .track{height:8px;background:var(--line);border-radius:6px;overflow:hidden}
+.hold .fill{height:100%;background:var(--r5);border-radius:6px}
+.hold .h.low .fill{background:var(--r2)}
+.insight{margin:14px 0 0;padding:12px 14px;border-left:4px solid var(--saffron);background:var(--surface);border-radius:0 10px 10px 0;font-size:15px}
+.empty{color:var(--muted);padding:14px 0}
+
+/* offenses */
+details{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:14px 2px}
+summary{font-weight:600;cursor:pointer}
+details ol{margin:12px 0 4px;padding-left:22px;color:var(--ink)}
+details li{margin:6px 0;font-size:15px}
+details p{margin:12px 0 0;color:var(--muted);font-size:14px}
+footer{margin-top:28px;text-align:center;color:var(--muted);font-size:14px}
+.erase{margin-top:14px;background:none;border:0;color:var(--muted);text-decoration:underline;font-size:14px}
+@media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+<script>
+(function(){
+  var CHECKS=[
+    {t:'I heard every word',s:'Attentive hearing of the holy name'},
+    {t:'I pronounced each name clearly',s:'Hare, Krishna, Rama: no swallowing or rushing'},
+    {t:'I brought my mind back when it wandered',s:'Bhagavad-gita 6.26'},
+    {t:'No multitasking, talking or drifting off',s:'Inattention is the tenth offense'},
+    {t:'I chanted humbly, praying to serve',s:'Sri Siksastakam 3, trnad api sunicena'}
+  ];
+  var RANKS=['Distracted','Restless','Wandering','Steady','Attentive','Absorbed'];
+  var OFFENSES=[
+    'Blaspheming the devotees who propagate the holy name',
+    'Considering the names of demigods equal to or independent of the name of Lord Visnu',
+    'Disobeying the spiritual master',
+    'Blaspheming the Vedic literature',
+    'Considering the glories of the holy name to be exaggeration',
+    'Interpreting the holy name',
+    'Committing sinful activities on the strength of chanting',
+    'Considering chanting equal to material pious activities',
+    'Instructing the glories of the holy name to the faithless',
+    'Inattention while chanting, and attachment to material things'
+  ];
+  var TICK='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.8"/></svg>';
+  var GOAL=18;
+  var LS='japa-log-v2';
+  var days=null;
+  try{days=JSON.parse(localStorage.getItem(LS)||'null');}catch(e){days=null;}
+  if(!days){
+    days={};
+    try{
+      var old=JSON.parse(localStorage.getItem('japa-log-v1')||'{}')||{};
+      Object.keys(old).forEach(function(k){
+        days[k]=(old[k]||[]).map(function(r){return {n:r.n,t:r.t,c:r.c.map(function(v){return v?2:0;})};});
+      });
+    }catch(e){days={};}
+  }
+  var msg='';
+  function persist(){try{localStorage.setItem(LS,JSON.stringify(days));}catch(e){msg='Could not save on this device. Check browser storage settings.';}}
+  function key(d){d=d||new Date();var m=d.getMonth()+1,dd=d.getDate();return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(dd<10?'0':'')+dd;}
+  function rounds(k){return days[k]||[];}
+  function score(r){var n=0;for(var i=0;i<5;i++){n+=(+r.c[i]||0);}return n;}
+  function band(sc){return sc<=0?0:Math.min(5,Math.max(1,Math.floor((sc+1)/2)));}
+  function tm(t){return new Date(t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'});}
+  function avg(list){if(!list.length)return null;var s=0;list.forEach(function(r){s+=score(r);});return s/list.length;}
+
+  var draft=[0,0,0,0,0],editing=null,eraseArmed=false,focusId=null;
+  var app=document.getElementById('app');
+
+  function tiles(list){
+    var s='';
+    for(var i=0;i<GOAL;i++){
+      var r=list[i];
+      if(r){
+        var sc=score(r),b=band(sc);
+        s+='<button class="tile'+(editing===i?' sel':'')+'" data-action="edit" data-i="'+i+'" style="background:var(--r'+b+');color:var(--t'+b+');border-color:var(--r'+b+')" aria-label="Round '+(i+1)+', '+sc+' out of 10, '+RANKS[b]+'. Edit">'+(i+1)+'</button>';
+      }else{
+        var isNext=(i===list.length&&editing===null);
+        s+='<div class="tile pend'+(isNext?' next':'')+'">'+(i+1)+'</div>';
+      }
+    }
+    return '<div class="grid" role="group" aria-label="Rounds, colored by rank">'+s+'</div>';
+  }
+
+  function render(){
+    var k=key(),list=rounds(k),n=list.length;
+    var a=avg(list);
+    var h='';
+    h+='<header><h1>Japa Log</h1><span class="date">'+new Date().toLocaleDateString([],{weekday:'long',month:'long',day:'numeric'})+'</span></header>';
+    h+='<p class="purpose">Chanting the Hare Krishna maha-mantra is the process of self-realization for this age. It cleanses the mirror of the mind, frees us from material anxiety, and awakens our dormant love for Krishna. The holy name is non-different from Krishna, so every round is His association. <span>Sri Siksastakam 1</span></p>';
+
+    var gb='';
+    gb+='<div class="summary"><span class="big">'+n+'</span><span class="of">of '+GOAL+' rounds</span>'+(a!==null?'<span class="avg">Average '+a.toFixed(1)+' / 10</span>':'')+'</div>'+tiles(list);
+    if(n>GOAL){gb+='<div class="extra">+'+(n-GOAL)+' extra round'+(n-GOAL>1?'s':'')+'</div>';}
+    else if(n===GOAL){gb+='<div class="extra">All '+GOAL+' rounds done</div>';}
+
+    // rating card
+    var title,btn;
+    if(editing!==null){title='Round '+(editing+1);btn='Update round '+(editing+1);}
+    else{title=(n>=GOAL?'Extra round ':'Round ')+(n+1);btn='Save round '+(n+1);}
+    var sc=0;draft.forEach(function(v){sc+=v;});
+    var bd=band(sc);
+    var LV=['Missed','Partly','Fully'];
+    h+='<div class="rate"><h2>'+title+'</h2><p class="sub" style="margin:0">For each point, tap how fully it held in this round.</p><div class="checks">';
+    CHECKS.forEach(function(c,i){
+      h+='<div class="item"><b>'+c.t+'</b><small>'+c.s+'</small><div class="seg" role="group" aria-label="'+c.t+'">';
+      for(var v=0;v<3;v++){
+        h+='<button id="ck'+i+'_'+v+'" data-action="set" data-k="'+i+'" data-v="'+v+'" aria-pressed="'+(draft[i]===v)+'">'+LV[v]+'</button>';
+      }
+      h+='</div></div>';
+    });
+    h+='</div><div class="live"><span class="swatch" style="background:var(--r'+bd+')"></span>'+RANKS[bd]+'<span class="sc">'+sc+' / 10</span></div>'+(sc===0?'<p class="sub" style="margin:-6px 0 14px">Still counts as a round. Save it honestly.</p>':'');
+    h+='<div class="btns"><button class="primary" id="save" data-action="save">'+btn+'</button>';
+    if(editing!==null){h+='<button class="ghost" data-action="cancel">Cancel</button><button class="ghost danger" data-action="delete">Delete round</button>';}
+    h+='</div></div>';
+    h+=gb;
+
+    // today
+    h+='<section><h2>Today</h2>';
+    if(!n){h+='<div class="empty">No rounds saved yet. Chant a round, then rate it above.</div>';}
+    else{
+      var best=list[0],worst=list[0];
+      list.forEach(function(r){if(score(r)>score(best))best=r;if(score(r)<score(worst))worst=r;});
+      h+='<div class="kv">';
+      h+='<div><small>Average</small><b>'+a.toFixed(1)+' / 10</b></div>';
+      h+='<div><small>Best round</small><b>'+best.n+' ('+score(best)+'/10)</b></div>';
+      h+='<div><small>Weakest round</small><b>'+worst.n+' ('+score(worst)+'/10)</b></div>';
+      h+='</div>';
+    }
+    h+='</section>';
+
+    // trend
+    h+='<section><h2>Last 7 days</h2><p class="sub">Average rank of your rounds each day.</p><div class="trend">';
+    for(var d=6;d>=0;d--){
+      var dt=new Date();dt.setDate(dt.getDate()-d);
+      var dl=rounds(key(dt)),av=avg(dl);
+      var lab=dt.toLocaleDateString([],{weekday:'short'});
+      if(av===null){h+='<div class="tcol"><div class="bar none"></div><span>'+lab+'</span></div>';}
+      else{h+='<div class="tcol"><b>'+av.toFixed(1)+'</b><div class="bar" style="height:'+Math.max(4,av/10*100).toFixed(0)+'px;background:var(--r'+band(Math.round(av))+')"></div><span>'+lab+'</span></div>';}
+    }
+    h+='</div></section>';
+
+    // checks over 30 days
+    var tot=0,pts=[0,0,0,0,0];
+    for(var q=0;q<30;q++){
+      var d2=new Date();d2.setDate(d2.getDate()-q);
+      rounds(key(d2)).forEach(function(r){tot++;for(var z=0;z<5;z++){pts[z]+=(+r.c[z]||0);}});
+    }
+    h+='<section><h2>Checks, last 30 days</h2>';
+    if(tot<3){h+='<div class="empty">Rate a few rounds to see which points hold best and which slip.</div>';}
+    else{
+      var low=0;
+      for(var m=1;m<5;m++){if(pts[m]<pts[low])low=m;}
+      h+='<p class="sub">How fully each point held, averaged over all your rounds.</p><div class="hold">';
+      CHECKS.forEach(function(c,i){
+        var p=Math.round(pts[i]/(2*tot)*100);
+        h+='<div class="h'+(i===low&&p<100?' low':'')+'"><div class="top"><span>'+c.t+'</span><b>'+p+'%</b></div><div class="track"><div class="fill" style="width:'+p+'%"></div></div></div>';
+      });
+      h+='</div>';
+      if(pts[low]<2*tot){h+='<p class="insight">Focus next: <b>'+CHECKS[low].t.toLowerCase()+'</b>. It held at '+Math.round(pts[low]/(2*tot)*100)+'% across '+tot+' rounds.</p>';}
+    }
+    h+='</section>';
+
+    // offenses
+    h+='<section><details><summary>The ten offenses to avoid</summary><ol>';
+    OFFENSES.forEach(function(o){h+='<li>'+o+'</li>';});
+    h+='</ol><p>As taught by Srila Prabhupada. Keep chanting your '+GOAL+' rounds daily, and let this log show where to improve.</p></details></section>';
+
+    h+='<footer>Hare Krishna Hare Krishna Krishna Krishna Hare Hare<br>Hare Rama Hare Rama Rama Rama Hare Hare<div class="backup"><button class="ghost" data-action="export">Export backup</button><button class="ghost" data-action="import">Import backup</button></div>'+(msg?'<p class="bmsg">'+msg+'</p>':'')+'<button class="erase" data-action="erase">'+(eraseArmed?'Tap again to erase all history':'Erase all history')+'</button></footer>';
+
+    app.innerHTML=h;
+    if(focusId){var el=document.getElementById(focusId);if(el){el.focus({preventScroll:true});}focusId=null;}
+  }
+
+  function act(el){
+    var a=el.getAttribute('data-action'),k=key();
+    if(a!=='erase'&&eraseArmed){eraseArmed=false;}
+    if(a==='set'){var i=+el.getAttribute('data-k'),v=+el.getAttribute('data-v');draft[i]=v;focusId='ck'+i+'_'+v;render();}
+    else if(a==='save'){
+      var list=days[k]||[];
+      if(editing!==null){list[editing].c=draft.slice();}
+      else{list.push({n:list.length+1,c:draft.slice(),t:Date.now()});}
+      days[k]=list;persist(k);editing=null;draft=[0,0,0,0,0];render();
+    }
+    else if(a==='edit'){
+      var idx=+el.getAttribute('data-i'),l=rounds(k);
+      if(editing===idx){editing=null;draft=[0,0,0,0,0];}
+      else{editing=idx;draft=l[idx].c.map(function(v){return +v||0;});}
+      render();
+      var card=document.querySelector('.rate');if(card&&editing!==null){card.scrollIntoView({behavior:'smooth',block:'center'});}
+    }
+    else if(a==='cancel'){editing=null;draft=[0,0,0,0,0];render();}
+    else if(a==='delete'){
+      var l2=days[k]||[];l2.splice(editing,1);l2.forEach(function(r,i){r.n=i+1;});
+      days[k]=l2;persist(k);editing=null;draft=[0,0,0,0,0];render();
+    }
+    else if(a==='export'){
+      try{
+        var blob=new Blob([JSON.stringify({app:'japa-log',v:2,days:days})],{type:'application/json'});
+        var url=URL.createObjectURL(blob),an=document.createElement('a');
+        an.href=url;an.download='japa-log-backup-'+key()+'.json';document.body.appendChild(an);an.click();an.remove();
+        setTimeout(function(){URL.revokeObjectURL(url);},1500);
+        msg='Backup file created.';
+      }catch(e){msg='Could not create the backup file.';}
+      render();
+    }
+    else if(a==='import'){fi.click();}
+    else if(a==='erase'){
+      if(eraseArmed){days={};persist();eraseArmed=false;editing=null;draft=[0,0,0,0,0];}
+      else{eraseArmed=true;}
+      render();
+    }
+  }
+  var fi=document.createElement('input');fi.type='file';fi.accept='.json,application/json';fi.style.display='none';document.body.appendChild(fi);
+  fi.addEventListener('change',function(){
+    var f=fi.files&&fi.files[0];if(!f){return;}
+    var rd=new FileReader();
+    rd.onload=function(){
+      try{
+        var o=JSON.parse(rd.result),d=o&&o.days,c=0;
+        if(!d||typeof d!=='object'){throw new Error('bad');}
+        Object.keys(d).forEach(function(k){if(/^\d{4}-\d{2}-\d{2}$/.test(k)&&Array.isArray(d[k])){days[k]=d[k];c++;}});
+        persist();msg='Imported '+c+' day'+(c===1?'':'s')+'.';
+      }catch(e){msg='That file could not be read.';}
+      fi.value='';render();
+    };
+    rd.readAsText(f);
+  });
+  app.addEventListener('click',function(e){var el=e.target.closest('[data-action]');if(el){act(el);}});
+  app.addEventListener('keydown',function(e){
+    if((e.key==='Enter'||e.key===' ')&&e.target.matches&&e.target.matches('g[data-action]')){e.preventDefault();act(e.target);}
+  });
+  render();
+  try{if(navigator.storage&&navigator.storage.persist){navigator.storage.persist();}}catch(e){}
+})();
+</script>
+</body>
+</html>
